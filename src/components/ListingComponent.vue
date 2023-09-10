@@ -17,7 +17,7 @@ const connectionsMap = computed(() => {
       groupedConnections[connection.group] = []
     }
 
-    ;(groupedConnections[connection.group] as Connection[]).push(connection)
+    (groupedConnections[connection.group] as Connection[]).push(connection)
   })
 
   return groupedConnections
@@ -67,7 +67,6 @@ const handleClick = () => {}
         <li>{{ groupName }}</li>
         <li
           class="ml-5 hover:bg-blue-400 hover:cursor-pointer border-l-2 border-transparent"
-          :class="{ 'border-blue-400': connection.id === connectionsStore.selectedConnection.id }"
           v-for="connection in group"
           :key="connection.id"
           draggable="true"
