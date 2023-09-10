@@ -29,7 +29,9 @@ export const connectionsStore = reactive({
     this.editableComponent = { ...connection } as Connection
   },
   async deleteConnection(connection: Connection) {
-    await invoke('delete', { id: connection.id })
+    const deletionResponse = await invoke('delete', { id: connection.id })
+    console.log("delresp " + deletionResponse)
+
     this.allConnections = (await loadConnections()) as Connection[]
   }
 })

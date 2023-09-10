@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { connectionsStore } from '@/store/connectionsStore'
-import { Connection } from '@/types/Connection'
+import type { Connection } from '@/types/Connection'
 import { computed, ref } from 'vue'
 import { invoke } from '@tauri-apps/api/tauri'
+import ConfirmCancelDialog from '@/components/dialog/ConfirmCancelDialog.vue'
 
 const isLaunchLoading = ref(false)
 
@@ -19,11 +20,6 @@ const saveConnection = async () => {
   }
 
   await connectionsStore.saveConnection(connectionsStore.editableComponent, true)
-}
-
-const deleteConnection = async () => {
-  const confirmed = true
-  await connectionsStore.deleteConnection(connectionsStore.editableComponent)
 }
 
 const launchConnection = async () => {
@@ -51,55 +47,87 @@ const launchConnection = async () => {
 const distinctGroups = computed(() => [
   ...new Set(connectionsStore.allConnections.map((connection: Connection) => connection.group))
 ])
+
+const showDeletionModal = ref(false)
+const handleChannelDeletion = async (confirmed: boolean) => {
+  showDeletionModal.value = false
+  if (!confirmed) return
+
+  await connectionsStore.deleteConnection(connectionsStore.selectedConnection)
+}
 </script>
 
 <template>
-  <form class="py-10 px-5 grid grid-cols-2 gap-4 dark:text-white" @submit.prevent>
-    <input
-      class="col-span-2 h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
-      type="text"
-      v-model="connectionsStore.editableComponent.name"
-      placeholder="Connection's name e.g Acme Test Instance"
-    />
-    <input
-      class="col-span-2 h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
-      type="text"
-      v-model="connectionsStore.editableComponent.address"
-      placeholder="Mirth Connect URL e.g https://localhost:8443"
-    />
-    <input
-      class="col-span-1 h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
-      type="text"
-      v-model="connectionsStore.editableComponent.username"
-      placeholder="Username e.g admin"
-    />
-    <input
-      class="col-span-1 h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
-      type="password"
-      v-model="connectionsStore.editableComponent.password"
-      placeholder="Password. Skip, if sensitive"
-    />
-    <input
-      class="col-span-2 h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
-      type="text"
-      v-model="connectionsStore.editableComponent.javaHome"
-      placeholder="Path to Java Home directory"
-    />
-    <input
-      class="col-span-2 h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
-      type="text"
-      v-model="connectionsStore.editableComponent.heapSize"
-      placeholder="e.g. 512m or 2g"
-    />
+  <form class="py-3 px-5 grid grid-cols-2 gap-2 dark:text-white" @submit.prevent>
+    <fieldset class="col-span-2">
+      <p>Connection name</p>
+      <input
+          class="w-full h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
+          type="text"
+          v-model="connectionsStore.editableComponent.name"
+          placeholder="Connection's name e.g Acme Test Instance"
+      />
+    </fieldset>
 
-    <div>
+    <fieldset class="col-span-2">
+      <p>Connection address</p>
+      <input
+          class="w-full h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
+          type="text"
+          v-model="connectionsStore.editableComponent.address"
+          placeholder="Mirth Connect URL e.g https://localhost:8443"
+      />
+    </fieldset>
+
+    <fieldset class="col-span-1">
+      <p>Username</p>
+      <input
+          class="w-full h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
+          type="text"
+          v-model="connectionsStore.editableComponent.username"
+          placeholder="Username e.g admin"
+      />
+    </fieldset>
+
+    <fieldset class="col-span-1">
+      <p>Password</p>
+      <input
+        class="w-full h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
+        type="password"
+        v-model="connectionsStore.editableComponent.password"
+        placeholder="Password. Skip, if sensitive"
+      />
+    </fieldset>
+
+
+    <fieldset class="col-span-2">
+      <p>Java home</p>
+      <input
+          class="w-full h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
+          type="text"
+          v-model="connectionsStore.editableComponent.javaHome"
+          placeholder="Path to Java Home directory"
+      />
+    </fieldset>
+
+    <fieldset class="col-span-2">
+      <p>Java args</p>
+      <input
+          class="w-full h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
+          type="text"
+          v-model="connectionsStore.editableComponent.heapSize"
+          placeholder="e.g. 512m or 2g"
+      />
+    </fieldset>
+
+    <fieldset>
       <p class="inline">Verify certificates?</p>
       <input
         class="col-span-1 shadow-lg rounded-md ml-2 dark:bg-input-dark"
         type="checkbox"
         v-model="connectionsStore.editableComponent.verify"
       />
-    </div>
+    </fieldset>
 
     <input
       class="col-span-1 h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
@@ -113,22 +141,31 @@ const distinctGroups = computed(() => [
     </datalist>
 
     <button
-      class="col-span-2 border border-black py-1 bg-blue-500 text-white font-bold"
+      class="col-span-2 border border-gray-700 py-1 bg-blue-500 text-white font-bold"
       @click="saveConnection"
     >
       Save
     </button>
     <button
-      class="col-span-2 border border-black py-1 bg-green-700 text-white font-bold"
+      class="col-span-2 border border-gray-700 py-1 bg-green-700 text-white font-bold"
       @click="launchConnection"
     >
       Open
     </button>
     <button
-      class="col-span-2 border border-black py-1 bg-red-700 text-white font-bold"
-      @click="deleteConnection"
+      class="col-span-2 border border-gray-700 py-1 bg-red-700 text-white font-bold"
+      @click="showDeletionModal = true"
     >
       Delete
     </button>
   </form>
+
+  <teleport to="body">
+    <confirm-cancel-dialog
+        v-if="showDeletionModal"
+        description="Are you sure you want to delete this channel?"
+        @on-confirm="handleChannelDeletion(true)"
+        @on-cancel="handleChannelDeletion(false)"
+    />
+  </teleport>
 </template>

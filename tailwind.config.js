@@ -12,8 +12,9 @@ export default {
         'input-dark': '#595959',
         'input-placeholder-dark': '#a1a1a1',
         'listing-dark': '#343434',
-      }
+      },
     },
   },
   plugins: [],
+  darkMode: 'class',
 }
