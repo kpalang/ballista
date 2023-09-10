@@ -2,9 +2,8 @@
 import { appWindow } from '@tauri-apps/api/window'
 import ConnectionComponent from './components/ConnectionComponent.vue'
 import ListingComponent from './components/ListingComponent.vue'
-import { infoStore, modalStore, themeStore } from '@/store/infoStore'
+import { infoStore, themeStore } from '@/store/infoStore'
 import { watch } from 'vue'
-import theme from 'tailwindcss/defaultTheme'
 
 appWindow.setTitle(`BallistaVue - ${infoStore.ballistaInfo.ballista_version}`)
 appWindow.setResizable(false)
