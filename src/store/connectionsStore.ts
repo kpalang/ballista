@@ -1,0 +1,35 @@
+import { reactive } from 'vue'
+import { invoke } from '@tauri-apps/api/tauri'
+
+import type { Connection } from '@/types/Connection'
+import { loadConnections, getEmptyConnection, DEFAULT_GROUP_NAME } from '@/types/Connection'
+
+export const connectionsStore = reactive({
+  allConnections: (await loadConnections()) as Connection[],
+  selectedConnection:
+    this !== undefined && this.allConnections.length > 0
+      ? this.allConnections[0]
+      : getEmptyConnection(),
+  editableComponent: getEmptyConnection(),
+  async saveConnection(connection: Connection, followSelection: boolean) {
+    if (this.editableComponent.group.trim().length == 0) {
+      this.editableComponent.group = DEFAULT_GROUP_NAME
+    }
+
+    const saveResult = await invoke('save', { ce: JSON.stringify(connection) })
+    console.log(saveResult)
+    if (followSelection) {
+      this.selectedConnection = { ...this.editableComponent } as Connection
+    }
+
+    this.allConnections = (await loadConnections()) as Connection[]
+  },
+  setSelectedConnection(connection: Connection) {
+    this.selectedConnection = { ...connection } as Connection
+    this.editableComponent = { ...connection } as Connection
+  },
+  async deleteConnection(connection: Connection) {
+    await invoke('delete', { id: connection.id })
+    this.allConnections = (await loadConnections()) as Connection[]
+  }
+})

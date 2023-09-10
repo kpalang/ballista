@@ -36,15 +36,15 @@
     "windows": [
       {
         "fullscreen": false,
-        "resizable": true,
-        "title": "Ballista",
+        "resizable": false,
+        "title": "BallistaVue",
         "width": 900,
         "height": 600
       }
     ],
     "systemTray": {
       "iconPath": "icons/favicon.ico",
-      "title": "Ballista"
+      "title": "BallistaVue"
     }
   }
 }
