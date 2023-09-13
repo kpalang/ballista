@@ -8,12 +8,12 @@ import { watch } from 'vue'
 appWindow.setTitle(`BallistaVue - ${infoStore.ballistaInfo.ballista_version}`)
 appWindow.setResizable(false)
 
-watch(themeStore.isDark, () => {
+const handleThemeChange = () => {
   localStorage.theme = themeStore.isDark.value === true ? 'dark' : 'light'
 
   if (
-    localStorage.theme === 'dark' ||
-    (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      localStorage.theme === 'dark' ||
+      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
   ) {
     document.documentElement.classList.add('dark')
     localStorage.theme = 'dark'
@@ -21,7 +21,10 @@ watch(themeStore.isDark, () => {
     document.documentElement.classList.remove('dark')
     localStorage.theme = 'light'
   }
-})
+}
+
+watch(themeStore.isDark, handleThemeChange)
+handleThemeChange()
 </script>
 
 <template>
