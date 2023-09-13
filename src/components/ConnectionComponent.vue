@@ -4,6 +4,7 @@ import type { Connection } from '@/types/Connection'
 import { computed, ref } from 'vue'
 import { invoke } from '@tauri-apps/api/tauri'
 import ConfirmCancelDialog from '@/components/dialog/ConfirmCancelDialog.vue'
+import {Icon} from "@iconify/vue";
 
 const isLaunchLoading = ref(false)
 
@@ -48,11 +49,13 @@ const distinctGroups = computed(() => [
   ...new Set(connectionsStore.allConnections.map((connection: Connection) => connection.group))
 ])
 
+const showPassword = ref(false)
+const showPasswordIcon = computed(() => showPassword.value ? 'akar-icons:eye-open' : 'akar-icons:eye-slashed' )
+const passwordFieldType = computed(() => showPassword.value ? 'text' : 'password' )
 const showDeletionModal = ref(false)
 const handleChannelDeletion = async (confirmed: boolean) => {
   showDeletionModal.value = false
   if (!confirmed) return
-
   await connectionsStore.deleteConnection(connectionsStore.selectedConnection)
 }
 </script>
@@ -90,10 +93,12 @@ const handleChannelDeletion = async (confirmed: boolean) => {
     </fieldset>
 
     <fieldset class="col-span-1">
-      <p>Password</p>
+      <p class="inline">Password</p>
+      <icon class="ml-2 inline align-text-top hover:cursor-pointer" :icon="showPasswordIcon" @click="showPassword = !showPassword" />
       <input
+        ref="passwordInputField"
         class="w-full h-9 shadow-lg rounded-md px-2 dark:placeholder:text-input-placeholder-dark dark:bg-input-dark"
-        type="password"
+        :type="passwordFieldType"
         v-model="connectionsStore.editableComponent.password"
         placeholder="Password. Skip, if sensitive"
       />
