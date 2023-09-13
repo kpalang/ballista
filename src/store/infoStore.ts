@@ -10,8 +10,3 @@ export const infoStore = reactive({
 export const themeStore = {
   isDark: ref(localStorage.theme == 'dark')
 }
-
-export const modalStore = reactive({
-  isModalVisible: true,
-  createModal: () => {}
-})
