@@ -28,32 +28,32 @@ async fn get_ballista_info() -> String {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn launch(id: &str, cs: State<ConnectionStore>, wc: State<WebStartCache>) -> String {
-    let ce = cs.get(id);
-    if let Some(ce) = ce {
-        let mut ws = wc.get(&ce.address);
-        if let None = ws {
-            let tmp = WebstartFile::load(&ce.address);
-            if let Err(e) = tmp {
-                let msg = e.to_string();
+fn launch(id: &str, connection_store: State<ConnectionStore>, webstart_cache: State<WebStartCache>) -> String {
+    let connection_entry = connection_store.get(id);
+    if let Some(connection_entry) = connection_entry {
+        let mut webstart_file = webstart_cache.get(&connection_entry.address);
+        if let None = webstart_file {
+            let tmp = WebstartFile::load(&connection_entry.address);
+            if let Err(error) = tmp {
+                let msg = error.to_string();
                 println!("{}", msg);
                 return create_json_resp(-1, &msg);
             }
 
-            ws = Some(Arc::new(tmp.unwrap()));
+            webstart_file = Some(Arc::new(tmp.unwrap()));
         }
-        let ws = ws.unwrap();
-        if ce.verify {
-            let verification_status = ws.verify(cs.get_cert_store().as_ref());
-            if let Err(e) = verification_status {
-                let resp = e.to_json();
-                println!("{}", resp);
-                return resp;
+        let webstart_file = webstart_file.unwrap();
+        if connection_entry.verify {
+            let verification_status = webstart_file.verify(connection_store.get_cert_store().as_ref());
+            if let Err(error) = verification_status {
+                let response = error.to_json();
+                println!("{}", response);
+                return response;
             }
         }
-        let r = ws.run(ce);
-        if let Err(e) = r {
-            let msg = e.to_string();
+        let result = webstart_file.run(connection_entry);
+        if let Err(error) = result {
+            let msg = error.to_string();
             println!("{}", msg);
             return create_json_resp(-1, &msg);
         }
