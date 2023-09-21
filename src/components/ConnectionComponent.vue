@@ -58,6 +58,8 @@ const distinctGroups = computed(() => [
   ...new Set(connectionsStore.allConnections.map((connection: Connection) => connection.group))
 ])
 
+const isLaunchButtonDisabled = computed(() => connectionsStore.editableComponent.id.trim() == '' || connectionsStore.editableComponent.address.trim() == '')
+
 const showPassword = ref(false)
 const showPasswordIcon = computed(() => showPassword.value ? 'akar-icons:eye-open' : 'akar-icons:eye-slashed' )
 const passwordFieldType = computed(() => showPassword.value ? 'text' : 'password' )
@@ -161,8 +163,9 @@ const handleChannelDeletion = async (confirmed: boolean) => {
       Save
     </button>
     <button
-      class="col-span-2 border border-gray-700 py-1 bg-green-700 text-white font-bold"
+      class="col-span-2 border border-gray-700 py-1 bg-green-700 text-white font-bold disabled:bg-gray-500"
       @click="launchConnection"
+      :disabled="isLaunchButtonDisabled"
     >
       Open
     </button>
