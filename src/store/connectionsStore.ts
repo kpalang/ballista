@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/tauri'
 
 import type { Connection } from '@/types/Connection'
 import { loadConnections, getEmptyConnection, DEFAULT_GROUP_NAME } from '@/types/Connection'
+import type { UntrustedCert } from "@/types/UntrustedCert";
 
 export const connectionsStore = reactive({
   allConnections: (await loadConnections()) as Connection[],
@@ -33,5 +34,14 @@ export const connectionsStore = reactive({
     console.log("delresp " + deletionResponse)
 
     this.allConnections = (await loadConnections()) as Connection[]
+  }
+})
+
+export const certificateStore = reactive({
+  untrustedCert: {} as UntrustedCert,
+  showTrustCertDialog: false,
+  clearDialog: () => {
+    this.showTrustCertDialog = false
+    this.untrustedCert = {} as UntrustedCert
   }
 })

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { connectionsStore } from '@/store/connectionsStore'
+import { connectionsStore, certificateStore } from '@/store/connectionsStore'
 import type { Connection } from '@/types/Connection'
 import { computed, ref } from 'vue'
 import { invoke } from '@tauri-apps/api/tauri'
 import ConfirmCancelDialog from '@/components/dialog/ConfirmCancelDialog.vue'
 import {Icon} from "@iconify/vue";
+import TrustClientCertificateDialog from "@/components/dialog/TrustClientCertificateDialog.vue";
 
 const isLaunchLoading = ref(false)
 
@@ -30,8 +31,8 @@ const launchConnection = async () => {
     let resp: string = await invoke('launch', { id: connectionsStore.editableComponent.id })
     let result: any = JSON.parse(resp)
     if (result.code == 1) {
-      // setCert(result.cert);
-      console.log(result.cert)
+      certificateStore.untrustedCert = result.cert
+      certificateStore.showTrustCertDialog = true
     }
     isLaunchLoading.value = false
     if (result.code == -1) {
@@ -44,6 +45,14 @@ const launchConnection = async () => {
 
   isLaunchLoading.value = false
 }
+
+const trustAndLaunchConnection = async () => {
+  certificateStore.showTrustCertDialog = false
+  await invoke("trust_cert", { cert: certificateStore.untrustedCert.der });
+  await launchConnection()
+}
+
+const abortConnection = () => certificateStore.clearDialog()
 
 const distinctGroups = computed(() => [
   ...new Set(connectionsStore.allConnections.map((connection: Connection) => connection.group))
@@ -171,6 +180,12 @@ const handleChannelDeletion = async (confirmed: boolean) => {
         description="Are you sure you want to delete this channel?"
         @on-confirm="handleChannelDeletion(true)"
         @on-cancel="handleChannelDeletion(false)"
+    />
+
+    <trust-client-certificate-dialog
+        v-if="certificateStore.showTrustCertDialog"
+        @on-confirm="trustAndLaunchConnection()"
+        @on-cancel="abortConnection()"
     />
   </teleport>
 </template>
